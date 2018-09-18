@@ -1,5 +1,4 @@
 
-
 import Server.UserServers;
 
 import java.io.DataInputStream;
@@ -63,17 +62,37 @@ public class ServerSocketServer extends Thread{
                 while (true){
                     if(i != 0){
                         //读（接收）取客户端信息
+                        /** 向某个人发送消息时需要先查询它是否是你的好友，如果是，则可以发送 **/
+                        /** 消息发送格式 fid+msg **/
                         DataInputStream in = new DataInputStream(socket.getInputStream());
                         String msg = in.readUTF();
+                        int fid = Integer.valueOf(msg.substring(0, msg.indexOf("+")));
+                        msg = msg.substring(msg.indexOf("+")+1, msg.length());
+                        if(userServers.FindByFid(fid, uid)){
+                            String fip = userServers.FindByFidState(fid);
+                            if(!fip.equals("false")){
+                                //向好友写（发送）信息
+                                for(Socket li : list){
+                                    if(fip.equals(li.toString())){
+                                        DataOutputStream out = new DataOutputStream(li.getOutputStream());
+                                        out.writeUTF(uid+"+"+msg);
+                                    }
+                                }
+                            }
+                            userServers.InsertMsg(uid, fid, msg);
+                        }else {
+                            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                            out.writeUTF("【系统提示】:你们还不是好友");
+                        }
                         System.out.println("【"+socket.getInetAddress().getHostAddress()+"】:"+msg);
                         //向客户端写（发送）信息
                         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                         out.writeUTF("发送成功");
-                        //全局发送消息
-                        for(Socket li : list){
-                            DataOutputStream outputStream = new DataOutputStream(li.getOutputStream());
-                            out.writeUTF("【"+li.getInetAddress().getHostAddress()+"】:"+msg);
-                        }
+//                        //全局发送消息
+//                        for(Socket li : list){
+//                            DataOutputStream outputStream = new DataOutputStream(li.getOutputStream());
+//                            out.writeUTF("【"+li.getInetAddress().getHostAddress()+"】:"+msg);
+//                        }
                     }
                     i ++;
                     if(i == 255){
