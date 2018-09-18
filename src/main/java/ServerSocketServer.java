@@ -87,7 +87,7 @@ public class ServerSocketServer extends Thread{
                         System.out.println("【"+socket.getInetAddress().getHostAddress()+"】:"+msg);
                         //向客户端写（发送）信息
                         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                        out.writeUTF("发送成功");
+                        out.writeUTF("【系统提示】:发送成功");
 //                        //全局发送消息
 //                        for(Socket li : list){
 //                            DataOutputStream outputStream = new DataOutputStream(li.getOutputStream());
