@@ -170,7 +170,6 @@ public class Jdbc {
 			PreparedStatement pstmt = con.prepareStatement(originalsql);
 			// count ? 的个数
 			int count = SearchCount(originalsql, "?");
-			System.out.println(count);
 			for(int i = 1;i <= count;i ++){
 				pstmt.setObject(i, SqlGetString(i, sqlData));
 			}

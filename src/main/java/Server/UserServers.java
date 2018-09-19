@@ -107,6 +107,28 @@ public class UserServers {
         return false;
     }
 
+    public static boolean InsertMsgToRequestMsg(int uid, int fid, String msg){
+        String time = GetTime();
+        String sql = "insert into request_msg(message, get_user, put_user, time) values('"+msg+"', "+fid+", "+uid+", '"+time+"')";
+        if(Jdbc.AddData(new SqlData(), Jdbc.Jdbc(), sql)){
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean InsertFriend(int uid, int fid){
+        String time = GetTime();
+        String sql = "insert into friend(fid, uid, time) values("+fid+", "+uid+", '"+time+"')";
+        if(Jdbc.AddData(new SqlData(), Jdbc.Jdbc(), sql)){
+            sql = "insert into friend(fid, uid, time) values("+uid+", "+fid+", '"+time+"')";
+            if(Jdbc.AddData(new SqlData(), Jdbc.Jdbc(), sql)){
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+
     public static List FindByGid(int gid){
         try {
             String sql = "select * from groups where g_id = ?";
