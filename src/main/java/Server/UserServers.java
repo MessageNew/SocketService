@@ -7,7 +7,10 @@ import db.Jdbc;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Mysteriouseyes on 2018/9/18.
@@ -54,7 +57,7 @@ public class UserServers {
         }
     }
 
-    public String FindByFidState(int fid){
+    public static String FindByFidState(int fid){
         try {
             String sql = "select * from user u where u.uid = ?";
             SqlData sqlData = new SqlData();
@@ -87,14 +90,52 @@ public class UserServers {
     }
 
     public boolean InsertMsg(int uid, int fid, String msg){
-        Date date = new Date();
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-        String time = df.format(date);
+        String time = GetTime();
         String sql = "insert into user_message(put_user, get_user, message, time) values("+uid+", "+fid+", '"+msg+"', '"+time+"')";
         if(Jdbc.AddData(new SqlData(), Jdbc.Jdbc(), sql)){
             return true;
         }
         return false;
+    }
+
+    public static boolean InsertMsgToGroupMsg(int uid, int gid, String msg){
+        String time = GetTime();
+        String sql = "insert into group_message(msg, time, uid, gid) values('"+msg+"', '"+time+"', "+uid+", "+gid+")";
+        if(Jdbc.AddData(new SqlData(), Jdbc.Jdbc(), sql)){
+            return true;
+        }
+        return false;
+    }
+
+    public static List FindByGid(int gid){
+        try {
+            String sql = "select * from groups where g_id = ?";
+            SqlData sqlData = new SqlData();
+            sqlData.setColumnValue1(gid);
+            Connection conn = Jdbc.Jdbc();
+            ResultSql resultSql = Jdbc.SearchData(sqlData, conn, sql);
+            ResultSet rs = resultSql.getRs();
+            if(rs.next()){
+                List list = Arrays.asList(rs.getString("g_personnel").split(","));
+                rs.close();
+                resultSql.getPstmt().close();
+                conn.close();
+                return list;
+            }
+            rs.close();
+            resultSql.getPstmt().close();
+            conn.close();
+            return new ArrayList();
+        }catch (Exception e){
+            System.out.println(e.toString());
+            return new ArrayList();
+        }
+    }
+
+    public static String GetTime(){
+        Date date = new Date();
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
+        return df.format(date);
     }
 
 }
