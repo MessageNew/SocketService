@@ -122,6 +122,7 @@ public class ServiceGetMsgAction extends Thread{
                         }else {
                             int rid = Integer.valueOf(msg.substring(msg.indexOf("-")+1, msg.length()));
                             UserServers.UpdatePersonInGroups(rid, gid);
+                            UserServers.UpdateGidListInUser(rid, gid);
                             List glists = UserServers.FindByGid(gid);
                             for(Object fid : glists){
                                 String state = UserServers.FindByFidState(Integer.valueOf(fid.toString()));

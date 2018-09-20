@@ -163,6 +163,36 @@ public class UserServers {
         return false;
     }
 
+    public static boolean UpdateGidListInUser(int uid, int gid){
+        try {
+            String sql = "select * from user where uid = ?";
+            SqlData sqlData = new SqlData();
+            sqlData.setColumnValue1(uid);
+            Connection conn = Jdbc.Jdbc();
+            ResultSql resultSql = Jdbc.SearchData(sqlData, conn, sql);
+            ResultSet rs = resultSql.getRs();
+            if(rs.next()){
+                String lists = rs.getString("gid_list");
+                if (lists == null || lists.equals("")){
+                    lists += String.valueOf(gid);
+                }else {
+                    lists += ","+String.valueOf(gid);
+                }
+                sql = "update user set gid_list = ? where uid = ?";
+                sqlData.setColumnValue1(lists);
+                sqlData.setColumnValue2(uid);
+                if(Jdbc.UpdateData(sqlData, conn, sql)){
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }catch (Exception e){
+            System.out.println(e.toString());
+            return false;
+        }
+    }
+
     public static boolean UpdatePersonInGroups(int uid, int gid){
         List list = FindByGid(gid);
         String lists = list.toString().replace(" ","");
