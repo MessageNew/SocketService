@@ -102,15 +102,35 @@ public class ServiceGetMsgAction extends Thread{
                                 OtherServies.SendMsg(SYSTEM+fid+"你们已经是好友了，一起来聊天吧",socket);
                             }
                         }
+                    }
+                    /**这是一个申请加群的请求，只会发送给群主，格式为qgid+msg-rid,注意事项同加好友申请
+                     * rid为申请人id, rid只会在请求被同意时出现**/
+                    else if(total.equals("q")){
+                        int gid = Integer.valueOf(msg.substring(1, msg.indexOf("+")));
+                        String msg1 = msg.substring(msg.indexOf("+")+1, msg.indexOf("-"));
+                        if(!msg1.equals("true")){
+                            int g_master = UserServers.FindByGidForGroups(gid);
+                            String state = UserServers.FindByFidState(g_master);
+                            if(!state.equals("false")){
+                                for(Socket li : list){
+                                    if(state.equals(li.toString())){
+                                        OtherServies.SendMsg("【加群提示】:群【"+gid+"】【"+uid+"】"+msg1,li);
+                                    }
+                                }
+                            }
+                            UserServers.InsertRGMsgToRGM(gid, uid, msg1);
+                        }else {
+                            int rid = Integer.valueOf(msg.substring(msg.indexOf("-")+1, msg.length()));
+                            UserServers.UpdatePersonInGroups(rid, gid);
+                        }
+
                     }else{
                         OtherServies.SendMsg(SYSTEM+RULES_OF_THE_DAMAGE, socket);
                     }
                     System.out.println("【"+socket.getInetAddress().getHostAddress()+"】:"+msg);
                 }
                 i ++;
-                if(i == 255){
-                    i = 1;
-                }
+                if(i == 255) i = 1;
             }
         }catch (Exception e){
             if(e.getMessage().equals("Connection reset")){

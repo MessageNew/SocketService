@@ -30,7 +30,7 @@ public class ServerSocketClient {
                 OutputStream outToServer = socket.getOutputStream();
                 DataOutputStream out = new DataOutputStream(outToServer);
                 /** 用户登录到服务器，同时发送uid给服务器做备份 **/
-                out.writeUTF("1");
+                out.writeUTF("3");
                 while (true){
                     //向服务端发送信息
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));

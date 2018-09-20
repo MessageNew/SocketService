@@ -129,6 +129,55 @@ public class UserServers {
         return false;
     }
 
+    public static int FindByGidForGroups(int gid){
+        try {
+            String sql = "select * from groups where g_id = ?";
+            SqlData sqlData = new SqlData();
+            sqlData.setColumnValue1(gid);
+            Connection conn = Jdbc.Jdbc();
+            ResultSql resultSql = Jdbc.SearchData(sqlData, conn, sql);
+            ResultSet rs = resultSql.getRs();
+            if(rs.next()){
+                int master = Integer.valueOf(rs.getString("g_master"));
+                rs.close();
+                resultSql.getPstmt().close();
+                conn.close();
+                return master;
+            }
+            rs.close();
+            resultSql.getPstmt().close();
+            conn.close();
+            return 0;
+        }catch (Exception e){
+            System.out.println(e.toString());
+            return 0;
+        }
+    }
+
+    public static boolean InsertRGMsgToRGM(int gid, int uid, String msg){
+        String time = GetTime();
+        String sql = "insert into requestgmsg(gid, msg, uid, time) values("+gid+", '"+msg+"', "+uid+", '"+time+"')";
+        if(Jdbc.AddData(new SqlData(), Jdbc.Jdbc(), sql)){
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean UpdatePersonInGroups(int uid, int gid){
+        List list = FindByGid(gid);
+        String lists = list.toString();
+        lists = lists.substring(1, lists.length()-1);
+        lists += ","+String.valueOf(uid);
+        String sql = "update groups set g_personnel = ? where g_id = ?";
+        SqlData sqlData = new SqlData();
+        sqlData.setColumnValue1(lists);
+        sqlData.setColumnValue2(gid);
+        if(Jdbc.UpdateData(sqlData, Jdbc.Jdbc(), sql)){
+            return true;
+        }
+        return false;
+    }
+
     public static List FindByGid(int gid){
         try {
             String sql = "select * from groups where g_id = ?";
