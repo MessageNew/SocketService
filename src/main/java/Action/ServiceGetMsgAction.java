@@ -122,6 +122,17 @@ public class ServiceGetMsgAction extends Thread{
                         }else {
                             int rid = Integer.valueOf(msg.substring(msg.indexOf("-")+1, msg.length()));
                             UserServers.UpdatePersonInGroups(rid, gid);
+                            List glists = UserServers.FindByGid(gid);
+                            for(Object fid : glists){
+                                String state = UserServers.FindByFidState(Integer.valueOf(fid.toString()));
+                                if(!state.equals("false")){
+                                    for(Socket fsocket : list){
+                                        if(state.equals(fsocket.toString())){
+                                            OtherServies.SendMsg("群消息【"+gid+"】【系统提示】:"+rid+"已经是群成员了", fsocket);
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                     }else{

@@ -165,9 +165,11 @@ public class UserServers {
 
     public static boolean UpdatePersonInGroups(int uid, int gid){
         List list = FindByGid(gid);
-        String lists = list.toString();
+        String lists = list.toString().replace(" ","");
+        System.out.println(lists);
         lists = lists.substring(1, lists.length()-1);
         lists += ","+String.valueOf(uid);
+        System.out.println(lists);
         String sql = "update groups set g_personnel = ? where g_id = ?";
         SqlData sqlData = new SqlData();
         sqlData.setColumnValue1(lists);
