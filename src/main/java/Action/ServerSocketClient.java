@@ -1,5 +1,8 @@
 package Action;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -30,7 +33,7 @@ public class ServerSocketClient {
                 OutputStream outToServer = socket.getOutputStream();
                 DataOutputStream out = new DataOutputStream(outToServer);
                 /** 用户登录到服务器，同时发送uid给服务器做备份 **/
-                out.writeUTF("3");
+                out.writeUTF("1");
                 while (true){
                     //向服务端发送信息
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
@@ -67,7 +70,16 @@ public class ServerSocketClient {
                     //从服务端读取信息
                     InputStream inFromServer = socket.getInputStream();
                     DataInputStream in = new DataInputStream(inFromServer);
-                    System.out.println(in.readUTF());
+                    String msg = in.readUTF();
+                    Gson gson = new Gson();
+                    JsonObject jsonObject = gson.fromJson(msg, JsonObject.class);
+                    JsonObject msgJ = gson.fromJson(jsonObject.get("data").toString(), JsonObject.class);
+                    String msgM = msgJ.get("msg").getAsString();
+                    msgM = msgToDou(msgM);
+                    msgM = jiemi(msgM);
+                    msgM = asciiToString(msgM);
+                    System.out.println(msg);
+                    System.out.println(msgM);
                 }
             }catch (Exception e){
                 if(e.getMessage().equals("Connection reset")){
@@ -76,6 +88,32 @@ public class ServerSocketClient {
                     System.out.println(e.toString());
                 }
             }
+        }
+
+        public static String asciiToString(String value)
+        {
+            StringBuffer sbu = new StringBuffer();
+            String[] chars = value.split(",");
+            for (int i = 0; i < chars.length; i++) {
+                sbu.append((char) Integer.parseInt(chars[i]));
+            }
+            return sbu.toString();
+        }
+
+        public static String msgToDou(String msg){
+            msg = msg.replace("，", ",");
+            return msg;
+        }
+
+        public static String jiemi(String msg){
+            String result = "";
+            for(String a : msg.split(",")){
+                int b = Integer.valueOf(a);
+                b = (b - 5)/10;
+                result += String.valueOf(b)+",";
+            }
+            result = result.substring(0, result.length() - 1);
+            return result;
         }
     }
 }
