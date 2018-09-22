@@ -1,4 +1,8 @@
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -6,11 +10,11 @@ import java.util.List;
  */
 public class Test {
     public static void main(String[] args){
-        List list = new ArrayList();
-        list.add(1);
-        list.add(2);
-        list.add(3);
-        String lists = list.toString();
-        System.out.printf(lists.substring(1, lists.length()-1));
+        JsonObject jsonObject = new JsonObject();
+        HashMap hashMap = new HashMap();
+        hashMap.put("key", "value");
+        Gson gson = new Gson();
+        jsonObject.add("data", gson.fromJson(hashMap.toString(), jsonObject.getClass()));
+        System.out.printf(jsonObject.toString());
     }
 }
