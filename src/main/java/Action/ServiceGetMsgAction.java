@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 
 import java.io.DataInputStream;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -46,26 +47,32 @@ public class ServiceGetMsgAction extends Thread{
                     Gson gson = new Gson();
                     JsonObject jsonObject = gson.fromJson(msg, JsonObject.class);
                     String type = jsonObject.get("type").getAsString();
+                    HashMap<String, Object> hashMap = new HashMap<String, Object>();
+                    hashMap.put("time",UserServers.GetTime());
                     System.out.println("type:"+type+",origin:"+jsonObject.get("type"));
                     /** 这是一个点对点的消息 {type:u,uid:1,msg:hello}**/
                     if(type.equals("u")){
                         int fid = jsonObject.get("uid").getAsInt();
                         msg = jsonObject.get("msg").getAsString();
+                        hashMap.put("type", "u");
                         if(userServers.FindByFid(fid, uid)){
                             String fip = userServers.FindByFidState(fid);
                             if(!fip.equals("false")){
                                 //向好友写（发送）信息
                                 for(Socket li : list){
                                     if(fip.equals(li.toString())){
-                                        OtherServies.SendMsg("【"+uid+"】:"+msg, li);
+                                        hashMap.put("uid", uid);
+                                        hashMap.put("msg", msg);
+                                        OtherServies.SendMsg(hashMap, li);
                                     }
                                 }
                             }
                             userServers.InsertMsg(uid, fid, msg);
                             //向客户端写（发送）信息
-                            OtherServies.SendMsg(SYSTEM+SUCCESS,socket);
+                            OtherServies.SendMsg(hashMap,socket);
                         }else {
-                            OtherServies.SendMsg(SYSTEM+IS_NOT_A_FRIEND,socket);
+                            hashMap.put("msg", IS_NOT_A_FRIEND);
+                            OtherServies.SendMsg(hashMap,socket);
                         }
                     }
                     /** 这是一个点对多的消息{type:g,gid:1,msg:hello} **/
@@ -73,12 +80,16 @@ public class ServiceGetMsgAction extends Thread{
                         int gid = jsonObject.get("gid").getAsInt();
                         msg = jsonObject.get("msg").getAsString();
                         List glists = UserServers.FindByGid(gid);
+                        hashMap.put("type", "g");
                         for(Object fid : glists){
                             String state = UserServers.FindByFidState(Integer.valueOf(fid.toString()));
                             if(!state.equals("false")){
                                 for(Socket fsocket : list){
                                     if(state.equals(fsocket.toString())){
-                                        OtherServies.SendMsg("【"+gid+"】【"+uid+"】:"+msg, fsocket);
+                                        hashMap.put("gid", gid);
+                                        hashMap.put("uid", uid);
+                                        hashMap.put("msg", msg);
+                                        OtherServies.SendMsg(hashMap, fsocket);
                                     }
                                 }
                             }
@@ -92,19 +103,24 @@ public class ServiceGetMsgAction extends Thread{
                     else if(type.equals("r")){
                         int fid = jsonObject.get("uid").getAsInt();
                         msg = jsonObject.get("msg").getAsString();
+                        hashMap.put("type", "r");
                         String state = UserServers.FindByFidState(fid);
                         if(!msg.equals("true")){
                             if(!state.equals("false")){
                                 for(Socket li : list){
                                     if(state.equals(li.toString())){
-                                        OtherServies.SendMsg("【好友请求】:【"+uid+"】"+msg,li);
+                                        hashMap.put("uid", uid);
+                                        hashMap.put("msg", msg);
+                                        OtherServies.SendMsg(hashMap,li);
                                     }
                                 }
                             }
                             UserServers.InsertMsgToRequestMsg(uid, fid, msg);
                         }else {
                             if(UserServers.InsertFriend(uid, fid)){
-                                OtherServies.SendMsg(SYSTEM+fid+"你们已经是好友了，一起来聊天吧",socket);
+                                hashMap.put("uid", fid);
+                                hashMap.put("msg", "你们已经是好友了，一起来聊天吧");
+                                OtherServies.SendMsg(hashMap,socket);
                             }
                         }
                     }
@@ -113,13 +129,17 @@ public class ServiceGetMsgAction extends Thread{
                     else if(type.equals("q")){
                         int gid = jsonObject.get("gid").getAsInt();
                         String msg1 = jsonObject.get("msg").getAsString();
+                        hashMap.put("type", "q");
                         if(!msg1.equals("true")){
                             int g_master = UserServers.FindByGidForGroups(gid);
                             String state = UserServers.FindByFidState(g_master);
                             if(!state.equals("false")){
                                 for(Socket li : list){
                                     if(state.equals(li.toString())){
-                                        OtherServies.SendMsg("【加群提示】:群【"+gid+"】【"+uid+"】"+msg1,li);
+                                        hashMap.put("gid", gid);
+                                        hashMap.put("uid", uid);
+                                        hashMap.put("msg", msg1);
+                                        OtherServies.SendMsg(hashMap,li);
                                     }
                                 }
                             }
@@ -134,7 +154,10 @@ public class ServiceGetMsgAction extends Thread{
                                 if(!state.equals("false")){
                                     for(Socket fsocket : list){
                                         if(state.equals(fsocket.toString())){
-                                            OtherServies.SendMsg("群消息【"+gid+"】【系统提示】:"+rid+"已经是群成员了", fsocket);
+                                            hashMap.put("gid", gid);
+                                            hashMap.put("uid", rid);
+                                            hashMap.put("msg", "已经是群成员了");
+                                            OtherServies.SendMsg(hashMap, fsocket);
                                         }
                                     }
                                 }
@@ -142,7 +165,9 @@ public class ServiceGetMsgAction extends Thread{
                         }
 
                     }else{
-                        OtherServies.SendMsg(SYSTEM+RULES_OF_THE_DAMAGE, socket);
+                        hashMap.put("type", "error");
+                        hashMap.put("msg", RULES_OF_THE_DAMAGE);
+                        OtherServies.SendMsg(hashMap, socket);
                     }
                     System.out.println("【"+socket.getInetAddress().getHostAddress()+"】:"+msg);
                 }
