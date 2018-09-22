@@ -2,6 +2,8 @@ package Action;
 
 import Server.OtherServies;
 import Server.UserServers;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.io.DataInputStream;
 import java.net.Socket;
@@ -37,15 +39,18 @@ public class ServiceGetMsgAction extends Thread{
                 if(i != 0){
                     //读（接收）取客户端信息
                     /** 向某个人发送消息时需要先查询它是否是你的好友，如果是，则可以发送 **/
-                    /** 点对点消息发送格式 ufid+msg **/
+                    /** 点对点消息发送格式{type:u,uid:123,msg:你好}**/
                     /** 如果第一个是u说明这是一个点对点，是g说明是一个点对多， 是r说明这是一个交友请求 **/
                     DataInputStream in = new DataInputStream(socket.getInputStream());
                     String msg = in.readUTF();
-                    String total = msg.substring(0, 1);
-                    /** 这是一个点对点的消息 **/
-                    if(total.equals("u")){
-                        int fid = Integer.valueOf(msg.substring(1, msg.indexOf("+")));
-                        msg = msg.substring(msg.indexOf("+")+1, msg.length());
+                    Gson gson = new Gson();
+                    JsonObject jsonObject = gson.fromJson(msg, JsonObject.class);
+                    String type = jsonObject.get("type").getAsString();
+                    System.out.println("type:"+type+",origin:"+jsonObject.get("type"));
+                    /** 这是一个点对点的消息 {type:u,uid:1,msg:hello}**/
+                    if(type.equals("u")){
+                        int fid = jsonObject.get("uid").getAsInt();
+                        msg = jsonObject.get("msg").getAsString();
                         if(userServers.FindByFid(fid, uid)){
                             String fip = userServers.FindByFidState(fid);
                             if(!fip.equals("false")){
@@ -63,10 +68,10 @@ public class ServiceGetMsgAction extends Thread{
                             OtherServies.SendMsg(SYSTEM+IS_NOT_A_FRIEND,socket);
                         }
                     }
-                    /** 这是一个点对多的消息 **/
-                    else if(total.equals("g")){
-                        int gid = Integer.valueOf(msg.substring(1, msg.indexOf("+")));
-                        msg = msg.substring(msg.indexOf("+")+1, msg.length());
+                    /** 这是一个点对多的消息{type:g,gid:1,msg:hello} **/
+                    else if(type.equals("g")){
+                        int gid = jsonObject.get("gid").getAsInt();
+                        msg = jsonObject.get("msg").getAsString();
                         List glists = UserServers.FindByGid(gid);
                         for(Object fid : glists){
                             String state = UserServers.FindByFidState(Integer.valueOf(fid.toString()));
@@ -83,10 +88,10 @@ public class ServiceGetMsgAction extends Thread{
                     /**这是一个交友请求，格式rfid+msg **/
                     /**注意，这里的请求有一点不同，这一个请求还是会发送到对方，但是不一样的是，这个请求
                      * 是存储在【请求消息表】中的，如果msg为true，则证明同意加好友的请求，在设计页面的时候注意
-                     * 这个消息不会显示在消息页面，而是显示在好友请求页面**/
-                    else if(total.equals("r")){
-                        int fid = Integer.valueOf(msg.substring(1, msg.indexOf("+")));
-                        msg = msg.substring(msg.indexOf("+")+1, msg.length());
+                     * 这个消息不会显示在消息页面，而是显示在好友请求页面{type:r, uid:1, msg:hello}**/
+                    else if(type.equals("r")){
+                        int fid = jsonObject.get("uid").getAsInt();
+                        msg = jsonObject.get("msg").getAsString();
                         String state = UserServers.FindByFidState(fid);
                         if(!msg.equals("true")){
                             if(!state.equals("false")){
@@ -104,10 +109,10 @@ public class ServiceGetMsgAction extends Thread{
                         }
                     }
                     /**这是一个申请加群的请求，只会发送给群主，格式为qgid+msg-rid,注意事项同加好友申请
-                     * rid为申请人id, rid只会在请求被同意时出现**/
-                    else if(total.equals("q")){
-                        int gid = Integer.valueOf(msg.substring(1, msg.indexOf("+")));
-                        String msg1 = msg.substring(msg.indexOf("+")+1, msg.indexOf("-"));
+                     * rid为申请人id, rid只会在请求被同意时出现{type:q, gid:12, msg:true, uid:2}**/
+                    else if(type.equals("q")){
+                        int gid = jsonObject.get("gid").getAsInt();
+                        String msg1 = jsonObject.get("msg").getAsString();
                         if(!msg1.equals("true")){
                             int g_master = UserServers.FindByGidForGroups(gid);
                             String state = UserServers.FindByFidState(g_master);
@@ -120,7 +125,7 @@ public class ServiceGetMsgAction extends Thread{
                             }
                             UserServers.InsertRGMsgToRGM(gid, uid, msg1);
                         }else {
-                            int rid = Integer.valueOf(msg.substring(msg.indexOf("-")+1, msg.length()));
+                            int rid = jsonObject.get("uid").getAsInt();
                             UserServers.UpdatePersonInGroups(rid, gid);
                             UserServers.UpdateGidListInUser(rid, gid);
                             List glists = UserServers.FindByGid(gid);
