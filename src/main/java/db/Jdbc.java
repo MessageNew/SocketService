@@ -16,12 +16,15 @@ public class Jdbc {
 	private static String url = "jdbc:mysql://127.0.0.1:3306/"+dataname+"?characterEncoding="+encoding+"";
 	public static Connection Jdbc(){
 		try {
+			System.out.println("驱动名称:MYSQL驱动2");
 			Class.forName("com.mysql.jdbc.Driver");
+			System.out.println("驱动名称:MYSQL驱动");
 			Connection conn = (Connection) DriverManager.getConnection(url,username,password);
+			System.out.println("CONN:"+conn);
 			return conn;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			System.out.println(e.getMessage());
+			System.out.println(e);
 			return null;
 		}
 	}

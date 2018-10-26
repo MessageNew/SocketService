@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="tcptest:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/tcptest_jar</output-path>
+    <root id="archive" name="tcptest.jar">
+      <element id="module-output" name="tcptest" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.3.1/gson-2.3.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/mysql/mysql-connector-java/5.0.5/mysql-connector-java-5.0.5.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

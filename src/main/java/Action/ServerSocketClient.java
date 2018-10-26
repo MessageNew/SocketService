@@ -12,7 +12,7 @@ import java.net.Socket;
 public class ServerSocketClient {
 
     public static void main(String[] args){
-        new Connecting("127.0.0.1", 8000).start();
+        new Connecting("dudupan.com", 8000).start();
     }
 
     static class Connecting extends Thread{
@@ -29,6 +29,7 @@ public class ServerSocketClient {
                 System.out.println("Connecting to " + ip + " on port " + port);
                 Socket socket = new Socket(ip, port); //连接服务端
                 System.out.println("Just connected to " + socket.getRemoteSocketAddress());
+                System.out.println(socket.getInetAddress());
                 new GetMsg(socket).start();
                 OutputStream outToServer = socket.getOutputStream();
                 DataOutputStream out = new DataOutputStream(outToServer);
@@ -37,8 +38,7 @@ public class ServerSocketClient {
                 while (true){
                     //向服务端发送信息
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-//                    OutputStream outToServer = socket.getOutputStream();
-//                    DataOutputStream out = new DataOutputStream(outToServer);
+                    /** 这里用来放加密信息 **/
                     out.writeUTF(bufferedReader.readLine());
                 }
             }catch (Exception e){
@@ -67,21 +67,34 @@ public class ServerSocketClient {
         public void run() {
             try {
                 while (true){
+                    System.out.println(socket.toString());
                     //从服务端读取信息
                     InputStream inFromServer = socket.getInputStream();
                     DataInputStream in = new DataInputStream(inFromServer);
                     String msg = in.readUTF();
                     Gson gson = new Gson();
                     JsonObject jsonObject = gson.fromJson(msg, JsonObject.class);
+                    System.out.println(jsonObject.toString());
                     JsonObject msgJ = gson.fromJson(jsonObject.get("data").toString(), JsonObject.class);
-                    String msgM = msgJ.get("msg").getAsString();
-                    msgM = msgToDou(msgM);
-                    msgM = jiemi(msgM);
-                    msgM = asciiToString(msgM);
-                    System.out.println(msg);
-                    System.out.println(msgM);
+                    System.out.println(msgJ.toString());
+                    try {
+                        String msgM = msgJ.get("msg").getAsString();
+                        System.out.println("这是一条消息3");
+                        msgM = msgToDou(msgM);
+                        System.out.println("这是一条消息2");
+                        msgM = jiemi(msgM);
+                        System.out.println("这是一条消息1");
+                        msgM = asciiToString(msgM);
+                        System.out.println("这是一条消息");
+                        System.out.println(msg);
+                        System.out.println(msgM);
+                    }catch (Exception e){
+                        continue;
+                    }
+
                 }
             }catch (Exception e){
+                System.out.println(e);
                 if(e.getMessage().equals("Connection reset")){
                     System.out.println("服务器断开连接，请重新启动程序");
                 }else {
@@ -114,6 +127,17 @@ public class ServerSocketClient {
             }
             result = result.substring(0, result.length() - 1);
             return result;
+        }
+
+        public static String jiami(String msg){
+            String miwen = "";
+            for(String a : msg.split(",")){
+                int b = Integer.valueOf(a);
+                b = b * 10 + 5;
+                miwen += String.valueOf(b)+",";
+            }
+            miwen = miwen.substring(0, miwen.length() - 1);
+            return miwen;
         }
     }
 }

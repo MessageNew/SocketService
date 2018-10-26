@@ -18,7 +18,8 @@ import java.util.List;
 public class UserServers {
 
     public void UpdateIpAndStateForUid(String uip, String state, int uid){
-        String sql = "update User u set u.ip = ? , u.state = ? where u.uid =?";
+        String sql = "update user u set u.ip = ? , u.state = ? where u.uid =?";
+        System.out.println("SQL:"+sql);
         SqlData sqlData = new SqlData();
         sqlData.setColumnValue1(uip);
         sqlData.setColumnValue2(state);
@@ -174,7 +175,7 @@ public class UserServers {
             if(rs.next()){
                 String lists = rs.getString("gid_list");
                 if (lists == null || lists.equals("")){
-                    lists += String.valueOf(gid);
+                    lists = String.valueOf(gid);
                 }else {
                     lists += ","+String.valueOf(gid);
                 }
